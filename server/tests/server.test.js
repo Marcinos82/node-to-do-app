@@ -11,7 +11,9 @@ const todos = [{
   text: 'First todo'
 }, {
   _id: new ObjectID(),
-  text: 'Second todo'
+  text: 'Second todo',
+  completed: true,
+  completedAt: 333
 }];
 
 beforeEach((done) => {
@@ -136,6 +138,47 @@ describe('DELETE /todos/:id', () => {
     request(app)
       .delete('/todos/123abc')
       .expect(404)
+      .end(done);
+  });
+});
+
+describe('PATCH /todos/:id', () => {
+  it('should update the todo', (done) => {
+    var id = todos[0]._id.toHexString();
+    var text = "Text has been updated.";
+
+  request(app)
+    .patch(`/todos/${id}`)
+    .send({
+      text: text,
+      completed: true
+    })
+    .expect(200)
+    .expect((res) => {
+      expect(res.body.todo.text).toBe(text);
+      expect (res.body.todo.completed).toBe(true);
+      expect (res.body.todo.completedAt).toBeA('number');
+    })
+    .end(done)
+  });
+
+  it('should clear completedAt wheb todo is not compleated', (done) => {
+
+      var id = todos[1]._id.toHexString();
+      var text = "Another time when text has been updated.";
+
+    request(app)
+      .patch(`/todos/${id}`)
+      .send({
+        text: text,
+        completed: false,
+      })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todo.text).toBe(text);
+        expect (res.body.todo.completed).toBe(false);
+        expect (res.body.todo.completedAt).toNotExist();
+      })
       .end(done);
   });
 });
